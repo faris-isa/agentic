@@ -62,6 +62,10 @@ RUN bun install --frozen-lockfile
 COPY . .
 EXPOSE 3000
 CMD ["bun", "run", "src/index.ts"]
+
+# Build arg for version
+ARG VERSION=dev
+LABEL version=$VERSION
 ```
 
 ### Node/Hono
@@ -73,6 +77,13 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
+
+# Build args for version
+ARG VERSION=dev
+ARG BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+LABEL version=$VERSION
+LABEL build-date=$BUILD_DATE
+
 EXPOSE 3000
 CMD ["node", "dist/index.js"]
 ```
@@ -85,13 +96,138 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -o main .
+
+ARG VERSION=dev
+ARG BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+LABEL version=$VERSION
+LABEL build-date=$BUILD_DATE
+
+RUN CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=$VERSION" -o main .
 
 FROM alpine:latest
 COPY --from=builder /app/main .
 EXPOSE 8080
 CMD ["./main"]
 ```
+
+## Versioning Strategy
+
+### Frontend Versioning
+```json
+// package.json
+{
+  "version": "1.0.0",
+  "buildDate": "2024-01-15",
+  "commit": "abc1234"
+}
+```
+
+```typescript
+// src/config.ts
+export const appConfig = {
+  version: process.env.APP_VERSION || 'dev',
+  buildDate: process.env.BUILD_DATE || 'local',
+  commit: process.env.COMMIT_HASH || 'local',
+}
+
+// Display in UI
+<footer>
+  v{appConfig.version} ({appConfig.buildDate})
+</footer>
+```
+
+### Backend Versioning
+```typescript
+// Bun/Node - src/index.ts
+const VERSION = process.env.APP_VERSION || 'dev'
+const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString()
+
+app.get('/health', () => ({
+  status: 'ok',
+  version: VERSION,
+  buildDate: BUILD_DATE,
+}))
+
+console.log(`Server v${VERSION} starting...`)
+```
+
+```go
+// Go - main.go
+var (
+    version    = "dev"
+    buildDate  = "local"
+)
+
+func init() {
+    if v := os.Getenv("APP_VERSION"); v != "" {
+        version = v
+    }
+    if d := os.Getenv("BUILD_DATE"); d != "" {
+        buildDate = d
+    }
+}
+
+func main() {
+    fmt.Printf("Server v%s starting...\n", version)
+}
+```
+
+### Version in CI/CD
+
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+          echo "COMMIT_SHA=${{ github.sha }}" >> $GITHUB_OUTPUT
+      
+      - name: Build and tag
+        run: |
+          docker build \
+            --build-arg VERSION=${{ steps.version.outputs.VERSION }} \
+            --build-arg BUILD_DATE=${{ steps.version.outputs.BUILD_DATE }} \
+            --build-arg COMMIT_SHA=${{ steps.version.outputs.COMMIT_SHA }} \
+            -t myapp:${{ steps.version.outputs.VERSION }}
+```
+
+### Health Check with Version
+
+```typescript
+app.get('/api/health', () => ({
+  status: 'healthy',
+  version: process.env.APP_VERSION || 'dev',
+  uptime: process.uptime(),
+  timestamp: new Date().toISOString(),
+}))
+
+// Response: { "status": "healthy", "version": "1.2.0", "uptime": 3600, "timestamp": "..." }
+```
+
+## Best Practices
+
+✅ Use multi-stage builds to reduce image size
+✅ Never commit secrets to git
+✅ Use environment variables for config
+✅ Set up health checks for containers
+✅ Configure auto-restart policies
+✅ Use CDN for static assets
+✅ Set up proper logging
+✅ Include version in health checks for debugging
+✅ Tag images with semantic version (v1.0.0, v1.1.0)
+✅ Use Git SHA for unique image tags
+
+🚫 Never hardcode credentials
+🚫 Never deploy without testing
+🚫 Never skip SSL/TLS
+🚫 Never leave debug logs in production
 
 ## Common Platforms
 
@@ -106,7 +242,7 @@ CMD ["./main"]
 
 ## CI/CD Examples
 
-### GitHub Actions (Node/Go)
+### GitHub Actions (Bun)
 ```yaml
 name: Deploy
 on:
@@ -136,7 +272,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
       - run: go test ./...
-      - run: go build -o main .
+      - run: go build -ldflags="-s -w -X main.version=${{ github.sha }}" -o main .
 ```
 
 ## Environment Variables
@@ -146,14 +282,17 @@ jobs:
 DATABASE_URL=postgresql://...
 JWT_SECRET=your-secret
 NODE_ENV=production
+APP_VERSION=1.0.0
+BUILD_DATE=2024-01-15T10:00:00Z
 ```
 
 ## Commands
 
 ### Build Docker
 ```bash
-docker build -t myapp .
-docker run -p 3000:3000 myapp
+docker build -t myapp:v1.0.0 .
+docker build --build-arg VERSION=1.0.0 -t myapp:v1.0.0 .
+docker run -p 3000:3000 myapp:v1.0.0
 ```
 
 ### Deploy to Railway
@@ -171,24 +310,9 @@ fly deploy
 
 ### Push to Docker Hub
 ```bash
-docker tag myapp:latest myusername/myapp:latest
-docker push myusername/myapp:latest
+docker tag myapp:v1.0.0 myusername/myapp:v1.0.0
+docker push myusername/myapp:v1.0.0
 ```
-
-## Best Practices
-
-✅ Use multi-stage builds to reduce image size
-✅ Never commit secrets to git
-✅ Use environment variables for config
-✅ Set up health checks for containers
-✅ Configure auto-restart policies
-✅ Use CDN for static assets
-✅ Set up proper logging
-
-🚫 Never hardcode credentials
-🚫 Never deploy without testing
-🚫 Never skip SSL/TLS
-🚫 Never leave debug logs in production
 
 ## Interaction with Other Agents
 

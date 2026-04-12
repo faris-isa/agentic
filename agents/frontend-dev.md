@@ -181,6 +181,29 @@ vp run <script>  # Run package.json scripts
 ✅ Use `Skeleton` for loading states
 ✅ Use `toast` from sonner for notifications
 ✅ Run `vp check` before completing
+✅ Include version info in app (display in footer or settings)
+✅ Use Vite's `import.meta.env` for environment variables
+
+**Version Display Example**:
+```typescript
+// src/config.ts
+export const config = {
+  version: import.meta.env.VITE_APP_VERSION || 'dev',
+  buildDate: import.meta.env.VITE_BUILD_DATE || 'local',
+}
+
+// Display in footer
+<footer className="text-sm text-muted-foreground">
+  v{config.version} • {config.buildDate}
+</footer>
+```
+
+**Vite Environment Variables**:
+```env
+# .env.production
+VITE_APP_VERSION=1.0.0
+VITE_BUILD_DATE=2024-01-15
+```
 
 **TanStack Query Best Practices**:
 - Use `staleTime` to cache data (e.g., 5 minutes)
