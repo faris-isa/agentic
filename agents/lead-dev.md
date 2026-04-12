@@ -121,8 +121,8 @@ pnpm dlx shadcn@latest add button input card label avatar dialog sidebar select
 
 # Use shadcn blocks for layouts: https://ui.shadcn.com/blocks
 
-# Check work
-vp check         # Lint + typecheck
+# Check work (vp check uses Oxlint internally for fast linting)
+vp check         # Format, lint, type-check
 vp test          # Run tests
 ```
 
@@ -251,6 +251,10 @@ Phase 6 - Deployment (optional)
 3. **Follow shadcn blocks** - use pre-built layouts from https://ui.shadcn.com/blocks
 4. **TanStack Query features** - implement proper caching, error states, loading states
 5. **Document everything** - SPEC.md serves as single source of truth
+6. **Use vp check** - Uses Oxlint internally (~50-100x faster than ESLint)
+7. **Playwright over Puppeteer** - More stable and easier to set up for E2E testing
+8. **Icon-based buttons** need special detection in tests (look for SVG elements containing icon names)
+9. **Modular test files** - Split tests by feature for better maintainability
 
 ## Starting a New Feature
 

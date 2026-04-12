@@ -139,9 +139,9 @@ describe('OpenAPI Documentation', () => {
 |-------|---------------|
 | Backend API | Vitest, Supertest, curl |
 | Frontend | Vitest, Testing Library |
-| E2E | Playwright |
+| E2E | Playwright (recommended over Puppeteer) |
 | DB | Manual queries, DB tests |
-| Lint/Types | ESLint, TypeScript |
+| Lint/Types | vp check (uses Oxlint internally), TypeScript |
 
 ## Available Tools
 
@@ -186,7 +186,7 @@ curl http://localhost:3000/api/health
 
 ### Phase 5: Code Quality Check
 ```bash
-# Run linting
+# Run linting (vp check uses Oxlint internally for fast linting)
 vp check
 
 # Run tests
@@ -201,22 +201,19 @@ vp coverage
 ```bash
 # Start development servers
 cd backend && pnpm dev
-cd frontend && vp dev
+cd frontend && pnpm dev
 
 # Run tests
-vp test              # Frontend tests
-pnpm test           # Backend tests
+pnpm test              # Frontend/backend tests
 
-# Lint and typecheck
-vp check            # Frontend
-pnpm lint           # Backend
+# Lint and typecheck (vp check uses Oxlint internally)
+vp check               # Format, lint, type-check in one command
 
 # Run specific test file
-vp test src/components/UserList.test.tsx
+pnpm test src/components/UserList.test.tsx
 pnpm test src/routes/users.test.ts
 
 # Check coverage
-vp coverage --coverage
 pnpm coverage
 ```
 
@@ -259,7 +256,7 @@ After testing, generate a report:
 | Schemas match API | ✅ | |
 
 ### Code Quality
-- Lint: ✅ Pass
+- vp check: ✅ Pass (uses Oxlint internally)
 - Types: ✅ Pass
 - Coverage: 75%
 

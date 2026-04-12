@@ -71,8 +71,12 @@ A comprehensive collection of specialized AI agents designed to accelerate and e
 
 ## 🔧 Skills
 
+- **vite-plus**: Vite+ (vp) commands and workflows
 - **shadcn-ui**: Detailed component patterns and design review
+- **drizzle-orm**: PostgreSQL with Drizzle ORM patterns
+- **backend-patterns**: Elysia, Hono, Gin backend frameworks
+- **fe-patterns**: React frontend patterns (hooks, TanStack Query, etc.)
 
 ## 📖 Documentation
 
-- **ITERATION.md**: Detailed project iteration log documenting our workflow improvements and learnings from each development cycle
+- **Agent Key Learnings**: Each agent file contains key learnings extracted from project iterations
