@@ -200,6 +200,54 @@ go run main.go             # API: http://localhost:8080/swagger
 ✅ Add pagination for list endpoints
 ✅ Generate OpenAPI docs for all endpoints
 ✅ Add documentation decorators (detail, tags, summary)
+✅ Include version in health endpoint for debugging
+
+**Version Implementation**:
+```typescript
+// Bun/Elysia - src/index.ts
+const VERSION = process.env.APP_VERSION || 'dev'
+const BUILD_DATE = process.env.BUILD_DATE || new Date().toISOString()
+
+app.get('/health', () => ({
+  status: 'ok',
+  version: VERSION,
+  buildDate: BUILD_DATE,
+}))
+
+console.log(`Server v${VERSION} starting on port ${port}`)
+```
+
+```go
+// Go - main.go
+var (
+    version   = "dev"
+    buildDate = "local"
+)
+
+func init() {
+    if v := os.Getenv("APP_VERSION"); v != "" {
+        version = v
+    }
+}
+
+func healthHandler(c *gin.Context) {
+    c.JSON(200, gin.H{
+        "status":    "ok",
+        "version":   version,
+        "buildDate": buildDate,
+    })
+}
+
+func main() {
+    fmt.Printf("Server v%s starting...\n", version)
+}
+```
+
+**Environment Variables**:
+```bash
+APP_VERSION=1.0.0
+BUILD_DATE=2024-01-15T10:00:00Z
+```
 
 🚫 Never use `any` type
 🚫 Never concatenate strings in SQL
