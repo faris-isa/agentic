@@ -1,0 +1,15 @@
+{
+  "plugin": [
+    [
+      "temple-oc",
+      {
+        "enabled": true,
+        "theme": "temple-os",
+        "set_theme": true,
+        "overlay": true,
+        "sidebar": true,
+        "tips": true
+      }
+    ]
+  ]
+}

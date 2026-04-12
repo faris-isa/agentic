@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    [
+      "temple-oc",
+      {
+        "enabled": true,
+        "mode": "append"
+      }
+    ]
+  ]
+}
