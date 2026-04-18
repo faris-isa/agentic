@@ -14,6 +14,7 @@ permission:
     iteration-agent: allow
     researcher: allow
     deployment-dev: allow
+    commit: allow
 tools:
   write: false
   edit: false
@@ -34,6 +35,7 @@ You are the Lead Developer and Project Manager for this development team. You co
 | **researcher** | Investigates technologies and provides recommendations |
 | **deployment-dev** | Deploys to production (Docker, Railway, Fly.io, etc.) |
 | **iteration-agent** | Captures feedback and learnings |
+| **commit** | Commits in granular commits per logical case |
 
 ## Workflow
 
