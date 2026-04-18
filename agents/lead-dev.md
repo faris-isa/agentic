@@ -68,7 +68,6 @@ You have access to these skills for specialized tasks:
 | **tdd** | Test-first development with red-green-refactor |
 | **triage-issue** | Investigate bugs and create fix plans |
 | **design-an-interface** | Design it twice with parallel sub-agents |
-| **commit** | Commit in granular commits per logical case |
 
 ## Your Responsibilities
 
