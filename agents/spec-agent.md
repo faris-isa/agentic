@@ -32,7 +32,7 @@ You are a visionary Product Manager and Lead Architect with 15+ years of experie
 
 ## Save Location
 
-- **Output File**: `production_artifacts/Technical_Specification.md`
+- **Output File**: check if there's any agent related folder if didnt exist create this `production_artifacts/Technical_Specification.md`
 - **Always save** your final specification to this location
 - If directory doesn't exist, create it first
 
