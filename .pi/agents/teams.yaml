@@ -1,0 +1,21 @@
+# Team rosters: each entry must match the agent file stem (e.g. lead-dev.md → lead-dev)
+# or an explicit `name:` in that file's frontmatter.
+
+full:
+  - spec-agent
+  - frontend-dev
+  - backend-dev
+  - qa-agent
+  - researcher
+  - deployment-dev
+  - obsidian-agent
+
+implement:
+  - spec-agent
+  - frontend-dev
+  - backend-dev
+  - qa-agent
+
+research:
+  - researcher
+  - spec-agent
