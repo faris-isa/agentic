@@ -5,7 +5,10 @@
  * to specialist agents via the `dispatch_agent` tool. Each specialist
  * maintains its own Pi session for cross-invocation memory.
  *
- * Loads agent definitions from agents/*.md, .claude/agents/*.md, .pi/agents/*.md.
+ * Loads agent definitions from agents/*.md, .claude/agents/*.md, .pi/agents/*.md
+ * relative to an auto-discovered project root (walk up from this file until
+ * agents/, .pi/agents/, etc. contain `.md` defs), not Pi’s session cwd.
+ * Override with `PI_AGENT_TEAM_ROOT` or `--agent-team-root <dir>`.
  * Teams are defined in .pi/agents/teams.yaml. On startup the first team is
  * activated; use /agents-team to switch. Only team members are dispatchable.
  *
@@ -34,7 +37,43 @@ import {
   mkdirSync,
   unlinkSync,
 } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const EXTENSION_FILE_DIR = dirname(fileURLToPath(import.meta.url));
+
+function dirHasAgentMarkdown(dir: string): boolean {
+  if (!existsSync(dir)) return false;
+  try {
+    return readdirSync(dir).some((f) => f.endsWith(".md"));
+  } catch {
+    return false;
+  }
+}
+
+function isAgentBundleRoot(dir: string): boolean {
+  return (
+    dirHasAgentMarkdown(join(dir, "agents")) ||
+    dirHasAgentMarkdown(join(dir, ".pi", "agents")) ||
+    dirHasAgentMarkdown(join(dir, ".claude", "agents")) ||
+    dirHasAgentMarkdown(join(dir, ".cursor", "agents"))
+  );
+}
+
+/**
+ * Walk upward from the extension file until we find a directory that contains
+ * agent `.md` files in a standard folder. Falls back to two parents (…/.pi/extensions → repo).
+ */
+function discoverAgentBundleRoot(extensionDir: string): string {
+  let d = resolve(extensionDir);
+  for (;;) {
+    if (isAgentBundleRoot(d)) return d;
+    const parent = dirname(d);
+    if (parent === d) break;
+    d = parent;
+  }
+  return resolve(extensionDir, "..", "..");
+}
 
 // ── Types ────────────────────────────────────────
 
@@ -200,6 +239,22 @@ function scanAgentDirs(cwd: string): AgentDef[] {
 // ── Extension ────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
+  pi.registerFlag("agent-team-root", {
+    description:
+      "Directory with agents/ and .pi/agents/ (default: discover from extension file)",
+    type: "string",
+  });
+
+  function resolveAgentDefRoot(): string {
+    const env = process.env.PI_AGENT_TEAM_ROOT?.trim();
+    if (env) return resolve(env);
+
+    const flag = pi.getFlag("agent-team-root") as string | undefined;
+    if (flag && String(flag).trim()) return resolve(String(flag).trim());
+
+    return discoverAgentBundleRoot(EXTENSION_FILE_DIR);
+  }
+
   const agentStates: Map<string, AgentState> = new Map();
   let allAgentDefs: AgentDef[] = [];
   let teams: Record<string, string[]> = {};
@@ -209,18 +264,16 @@ export default function (pi: ExtensionAPI) {
   let sessionDir = "";
   let contextWindow = 0;
 
-  function loadAgents(cwd: string) {
-    // Create session storage dir
-    sessionDir = join(cwd, ".pi", "agent-sessions");
+  /** Agent defs + teams.yaml from install root; sessions under sessionRoot. */
+  function loadAgents(defRoot: string, sessionRoot: string) {
+    sessionDir = join(sessionRoot, ".pi", "agent-sessions");
     if (!existsSync(sessionDir)) {
       mkdirSync(sessionDir, { recursive: true });
     }
 
-    // Load all agent definitions
-    allAgentDefs = scanAgentDirs(cwd);
+    allAgentDefs = scanAgentDirs(defRoot);
 
-    // Load teams from .pi/agents/teams.yaml
-    const teamsPath = join(cwd, ".pi", "agents", "teams.yaml");
+    const teamsPath = join(defRoot, ".pi", "agents", "teams.yaml");
     if (existsSync(teamsPath)) {
       try {
         teams = parseTeamsYaml(readFileSync(teamsPath, "utf-8"));
@@ -820,8 +873,11 @@ ${agentCatalog}`,
     widgetCtx = _ctx;
     contextWindow = _ctx.model?.contextWindow || 0;
 
-    // Wipe old agent session files so subagents start fresh
-    const sessDir = join(_ctx.cwd, ".pi", "agent-sessions");
+    const defRoot = resolveAgentDefRoot();
+    const sessionRoot =
+      _ctx.cwd && _ctx.cwd !== "/" ? _ctx.cwd : defRoot;
+
+    const sessDir = join(sessionRoot, ".pi", "agent-sessions");
     if (existsSync(sessDir)) {
       for (const f of readdirSync(sessDir)) {
         if (f.endsWith(".json")) {
@@ -832,7 +888,7 @@ ${agentCatalog}`,
       }
     }
 
-    loadAgents(_ctx.cwd);
+    loadAgents(defRoot, sessionRoot);
 
     // Default to first team — use /agents-team to switch
     const teamNames = Object.keys(teams);
