@@ -65,11 +65,9 @@ You have access to these skills for specialized tasks:
 | **to-prd** | Create a PRD from current conversation context |
 | **to-issues** | Break a plan/PRD into GitHub issues |
 | **github-triage** | Triage GitHub issues with state machine labels |
-| **request-refactor-plan** | Plan a refactor with tiny commits |
-| **improve-codebase-architecture** | Find architectural improvements, deepen modules |
+| **improve-codebase-architecture** | Find architectural improvements, deepen modules; use for refactor exploration |
 | **tdd** | Test-first development with red-green-refactor |
 | **triage-issue** | Investigate bugs and create fix plans |
-| **design-an-interface** | Design it twice with parallel sub-agents |
 
 ## Your Responsibilities
 
@@ -129,9 +127,9 @@ For architectural improvements, use improve-codebase-architecture skill:
 Task: Load skill "improve-codebase-architecture" to explore and find module deepening opportunities
 ```
 
-For refactor planning, use request-refactor-plan:
+For refactor planning, use **improve-codebase-architecture** (and **to-issues** if you need tickets from the plan):
 ```
-Task: Load skill "request-refactor-plan" to create a detailed refactor plan
+Task: Load skill "improve-codebase-architecture" to explore the codebase and propose safe, incremental refactor steps
 ```
 
 ### 5. Delegate Implementation
