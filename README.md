@@ -4,80 +4,71 @@ A comprehensive collection of specialized AI agents designed to accelerate and e
 
 ## 📥 Installation
 
-1. **Download this repository:**
-   ```bash
-   git clone https://github.com/faris-isa/agentic.git
-   ```
+```mermaid
+flowchart LR
+  subgraph openCode [Open Code]
+    A[Clone repo] --> B[Symlink agents + skills]
+    B --> C[Restart Open Code]
+  end
+```
 
-2. **Symlink to opencode agents directory:**
-   ```bash
-   ln -s ~/app/isa/agentic/agents ~/.config/opencode/agents
-   ln -s ~/app/isa/agentic/skills ~/.config/opencode/skills
-   ```
-
-3. **Restart Open Code** to load the new agents.
+1. Clone: `git clone https://github.com/faris-isa/agentic.git`
+2. Point Open Code at this copy (adjust paths if your clone lives elsewhere):
+   - `ln -s ~/app/isa/agentic/agents ~/.config/opencode/agents`
+   - `ln -s ~/app/isa/agentic/skills ~/.config/opencode/skills`
+3. Restart **Open Code**.
 
 ### Pi (pi-coding-agent)
 
-Pi loads project context from `AGENTS.md` (this repo includes one at the root) and discovers extensions from `~/.pi/agent/extensions` and `<repo>/.pi/extensions`. Team presets live in `.pi/agents/teams.yaml`.
-
-**Requirements:** Node.js 22+ and Pi **v0.71+** (extensions layout; see [extensions migration](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/CHANGELOG.md#extensions-migration) and [extensions docs](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/extensions.md)).
-
-**Optional — Cursor models inside Pi:**
-
-```bash
-pi install npm:@schultzp2020/pi-cursor
+```mermaid
+flowchart TD
+  R[Repo on disk] --> P[Pi loads AGENTS.md + extensions]
+  P --> E["~/.pi/agent/extensions → .pi/extensions"]
+  P --> T["Teams: .pi/agents/teams.yaml"]
+  P --> Opt{Cursor in Pi?}
+  Opt -->|optional| C[pi-cursor + /login]
+  Opt -->|no| M[Model as usual]
 ```
 
-Then run `/login` in Pi, choose **Cursor**, and pick a model with `/model`.
+Pi discovers extensions from `~/.pi/agent/extensions` and `<repo>/.pi/extensions`. Team presets live in `.pi/agents/teams.yaml`.
 
-**Symlink this repo into Pi’s agent dir** (adjust the left side if your clone path differs):
+**Requirements:** Node.js 22+ and Pi **v0.71+** ([extensions migration](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/CHANGELOG.md#extensions-migration), [extensions docs](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/extensions.md)).
 
-```bash
-mkdir -p ~/.pi/agent
-ln -sf ~/app/isa/agentic/.pi/agents ~/.pi/agents
-ln -sf ~/app/isa/agentic/.pi/extensions ~/.pi/agent/extensions
-ln -sf ~/app/isa/agentic/skills ~/.pi/agent/skills
+**Optional — Cursor models in Pi:** `pi install npm:@schultzp2020/pi-cursor`, then `/login` → **Cursor** → `/model`.
+
+**Symlink this repo into Pi** (adjust the left-hand paths if needed): `mkdir -p ~/.pi/agent`; then `ln -sf ~/app/isa/agentic/.pi/agents ~/.pi/agents`, `ln -sf ~/app/isa/agentic/.pi/extensions ~/.pi/agent/extensions`, `ln -sf ~/app/isa/agentic/skills ~/.pi/agent/skills`. Restart Pi after changes. The `agent-team` stub under `.pi/extensions/agent-team/` keeps the extension scanner happy when this folder is linked.
+
+### Google Antigravity
+
+```mermaid
+flowchart LR
+  subgraph canon [Repo]
+    AG[".antigravity/ rules · workflows · skills →"]
+  end
+  canon --> L["ln -sfn .antigravity .agents"]
+  L --> IDE[Antigravity reads .agents/]
 ```
 
-Restart Pi after changing symlinks. The `agent-team` stub under `.pi/extensions/agent-team/` exists so Pi’s extension scanner always has a valid entry when this folder is linked.
+Bundle: **`.antigravity/`** — see [`.antigravity/README.md`](.antigravity/README.md). Create the symlink at the workspace root when using Antigravity: `ln -sfn .antigravity .agents` (ignored by git in this repo).
 
 ## 🏗️ Workflow
 
+```mermaid
+flowchart TD
+  U[User asks to build] --> L[Lead dev]
+  L --> Ld[Understand · hand off spec · wait for approval · delegate]
+  Ld --> S[Spec agent]
+  Ld --> K[Backend dev]
+  S --> Sd[Questions + technical spec · needs approval]
+  K --> Kd[Hono/Node or Gin · Postgres/Drizzle · auth]
+  Sd --> Gate{Spec approved?}
+  Gate -->|revise| S
+  Gate -->|yes| F[Frontend dev]
+  Kd --> F
+  F --> Fd[React · TS · TanStack Query · shadcn · Vite+]
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         USER                                │
-│                    "Build something"                        │
-└─────────────────────┬───────────────────────────────────────┘
-                      ↓
-┌─────────────────────↓───────────────────────────────────────┐
-│                    LEAD DEV (Primary)                       │
-│  • Understand the request                                    │
-│  • Invoke spec-agent to design                             │
-│  • Wait for user approval                                   │
-│  • Delegate to implementation agents                       │
-└─────────────────────────────────────────────────────────────┘
-                               ↓
-                    ┌──────────────┴──────────────┐
-                    ↓                                 ↓
-┌─────────────────────────↓              ┌─────────↓─────────────────┐
-│              SPEC AGENT                  │         BACKEND-DEV     │
-│  • Asks clarifying questions            │  • Hono/Node.js OR      │
-│  • Creates Technical Specification      │    Gin/Go              │
-│  • Waits for explicit approval          │  • PostgreSQL + Drizzle│
-│                                        │  • JWT Auth             │
-└────────────────────────────────────────┴─────────────────────────┘
-                    ↓                                 ↓
-                    └──────────────┬──────────────┘
-                                   ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   FRONTEND-DEV                              │
-│  • React + TypeScript                                       │
-│  • TanStack Query for server state                         │
-│  • shadcn/ui for components                                │
-│  • Vite+ for build                                          │
-└─────────────────────────────────────────────────────────────┘
-```
+
+In Open Code / Cursor, backend work and spec refinement can overlap in practice; the important gate is **explicit approval** before large implementation.
 
 ## 👥 Team
 
