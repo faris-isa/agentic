@@ -1,5 +1,9 @@
 # Team rosters: each entry must match the agent file stem (e.g. lead-dev.md → lead-dev)
 # or an explicit `name:` in that file's frontmatter.
+#
+# Only names listed here are dispatchable via dispatch_agent (see .pi/extensions/agent-team.ts).
+# Omit lead-dev here: that prompt assumes Cursor/Open Code "Task" subagents; nested `pi`
+# children only get normal tools, so lead-dev cannot orchestrate the same way inside Pi.
 
 full:
   - spec-agent
@@ -9,13 +13,17 @@ full:
   - researcher
   - deployment-dev
   - obsidian-agent
+  - git
+  - iteration-agent
 
 implement:
   - spec-agent
   - frontend-dev
   - backend-dev
   - qa-agent
+  - git
 
 research:
   - researcher
   - spec-agent
+  - git
