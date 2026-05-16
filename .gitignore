@@ -1,0 +1,2 @@
+# Google Antigravity looks for .agents/; create locally: ln -sfn .antigravity .agents
+.agents
