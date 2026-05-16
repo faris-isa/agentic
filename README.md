@@ -7,16 +7,29 @@ A comprehensive collection of specialized AI agents designed to accelerate and e
 ```mermaid
 flowchart LR
   subgraph openCode [Open Code]
-    A[Clone repo] --> B[Symlink agents + skills]
+    A[Clone repo] --> B[Symlink agents · skills · opencode.json · OMO · plugin]
     B --> C[Restart Open Code]
   end
 ```
 
 1. Clone: `git clone https://github.com/faris-isa/agentic.git`
-2. Point Open Code at this copy (adjust paths if your clone lives elsewhere):
-   - `ln -s ~/app/isa/agentic/agents ~/.config/opencode/agents`
-   - `ln -s ~/app/isa/agentic/skills ~/.config/opencode/skills`
+2. Point Open Code at this copy (adjust `AGENTIC` if your clone lives elsewhere):
+
+```bash
+AGENTIC="${AGENTIC:-$HOME/app/isa/agentic}"
+ln -sfn "$AGENTIC/agents" ~/.config/opencode/agents
+ln -sfn "$AGENTIC/skills" ~/.config/opencode/skills
+ln -sfn "$AGENTIC/opencode.json" ~/.config/opencode/opencode.json
+ln -sfn "$AGENTIC/.opencode/oh-my-openagent.json" ~/.config/opencode/oh-my-openagent.json
+mkdir -p ~/.config/opencode/plugins
+ln -sfn "$AGENTIC/.opencode/plugins/blob-error-filter.ts" ~/.config/opencode/plugins/blob-error-filter.ts
+```
+
 3. Restart **Open Code**.
+
+**Bundle layout:** `.opencode/` holds Oh My OpenAgent config, optional local plugins, and [`.opencode/README.md`](.opencode/README.md) (symlinks, MCP placeholders). Repo root **`opencode.json`** is the Open Code project/global config (Cursor ACP provider, npm plugins); Postgres MCP entries use **placeholders**—set real URIs locally or via [`{file:...}`](https://opencode.ai/docs/config) and **rotate** any credentials that were ever in plain config.
+
+When **this repo** is the Open Code workspace, files under `.opencode/plugins/` are also [loaded automatically](https://opencode.ai/docs/plugins); the symlink above ensures the blob-error filter applies globally too.
 
 ### Pi (pi-coding-agent)
 

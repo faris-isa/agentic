@@ -2,6 +2,8 @@
 
 Canonical copy lives under **`.antigravity/`** so it does not compete with other tools that reserve **`.agents/`** for their own config.
 
+**Open Code** uses a parallel bundle at [**`../.opencode/`**](../.opencode/README.md) (Oh My OpenAgent + plugins); root **`opencode.json`** holds providers and npm plugins.
+
 ## How Antigravity finds it
 
 Google’s codelab expects workspace paths like **`.agents/rules/`**, **`.agents/workflows/`**, **`.agents/skills/`**. This repo keeps real files under **`.antigravity/`** and you bridge with a **local symlink** (listed in `.gitignore` so it is not committed):
