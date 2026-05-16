@@ -17,6 +17,31 @@ A comprehensive collection of specialized AI agents designed to accelerate and e
 
 3. **Restart Open Code** to load the new agents.
 
+### Pi (pi-coding-agent)
+
+Pi loads project context from `AGENTS.md` (this repo includes one at the root) and discovers extensions from `~/.pi/agent/extensions` and `<repo>/.pi/extensions`. Team presets live in `.pi/agents/teams.yaml`.
+
+**Requirements:** Node.js 22+ and Pi **v0.71+** (extensions layout; see [extensions migration](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/CHANGELOG.md#extensions-migration) and [extensions docs](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/extensions.md)).
+
+**Optional — Cursor models inside Pi:**
+
+```bash
+pi install npm:@schultzp2020/pi-cursor
+```
+
+Then run `/login` in Pi, choose **Cursor**, and pick a model with `/model`.
+
+**Symlink this repo into Pi’s agent dir** (adjust the left side if your clone path differs):
+
+```bash
+mkdir -p ~/.pi/agent
+ln -sf ~/app/isa/agentic/.pi/agents ~/.pi/agents
+ln -sf ~/app/isa/agentic/.pi/extensions ~/.pi/agent/extensions
+ln -sf ~/app/isa/agentic/skills ~/.pi/agent/skills
+```
+
+Restart Pi after changing symlinks. The `agent-team` stub under `.pi/extensions/agent-team/` exists so Pi’s extension scanner always has a valid entry when this folder is linked.
+
 ## 🏗️ Workflow
 
 ```
@@ -62,6 +87,14 @@ A comprehensive collection of specialized AI agents designed to accelerate and e
 | **spec-agent** | subagent | Designs Technical Specifications, gets approval |
 | **frontend-dev** | subagent | Implements frontend (React, TanStack Query, shadcn/ui) |
 | **backend-dev** | subagent | Implements backend (Hono/Node or Gin/Go + PostgreSQL) |
+| **qa-agent** | subagent | Tests and verifies implementation |
+| **researcher** | subagent | Investigates libraries, patterns, and trade-offs |
+| **deployment-dev** | subagent | Docker, CI/CD, hosting |
+| **obsidian-agent** | subagent | Obsidian vault search and notes |
+| **git** | subagent | Git commits, branches, GitHub via `gh` |
+| **iteration-agent** | subagent | Captures feedback and learnings |
+
+Pi / dispatcher presets (`full`, `implement`, `research`) are listed in `.pi/agents/teams.yaml`.
 
 ## 🎯 Usage
 
