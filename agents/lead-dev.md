@@ -61,10 +61,14 @@ You have access to these skills for specialized tasks:
 | Skill | When to Use |
 |-------|-------------|
 | **caveman** | Ultra-brief communication, reduce token usage |
-| **domain-model** | Stress-test a plan against domain model, sharpen terminology, create ADRs |
+| **grill-me** | Stress-test a plan (non-code); one question at a time until decisions resolve |
+| **grill-with-docs** | Same as grill-me plus inline updates to `CONTEXT.md` and ADRs |
+| **handoff** | Compact conversation handoff for another agent |
 | **to-prd** | Create a PRD from current conversation context |
 | **to-issues** | Break a plan/PRD into GitHub issues |
-| **github-triage** | Triage GitHub issues with state machine labels |
+| **triage** | Move issues through triage roles (tracker labels from `/setup-matt-pocock-skills`) |
+| **prototype** | Throwaway terminal app or UI variants to answer a design question fast |
+| **diagnose** | Hard bugs / perf: build a feedback loop, reproduce, hypothesise, instrument, fix |
 | **improve-codebase-architecture** | Find architectural improvements, deepen modules; use for refactor exploration |
 | **tdd** | Test-first development with red-green-refactor |
 | **triage-issue** | Investigate bugs and create fix plans |
