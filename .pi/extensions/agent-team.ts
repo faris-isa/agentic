@@ -1,19 +1,20 @@
 /**
- * Agent Team — Dispatcher-only orchestrator with grid dashboard
+ * Agent Team — Optional dispatcher orchestrator with grid dashboard
  *
- * The primary Pi agent has NO codebase tools. It can ONLY delegate work
- * to specialist agents via the `dispatch_agent` tool. Each specialist
- * maintains its own Pi session for cross-invocation memory.
+ * While a YAML **team** is active, the primary Pi agent has only `dispatch_agent`
+ * and must delegate to specialists (each keeps its own session). With team **none**
+ * (default), Pi uses normal built-in tools (read, bash, edit, etc.) and no dispatcher prompt.
  *
  * Loads agent definitions from agents/*.md, .claude/agents/*.md, .pi/agents/*.md
  * relative to an auto-discovered project root (walk up from this file until
  * agents/, .pi/agents/, etc. contain `.md` defs), not Pi’s session cwd.
  * Override with `PI_AGENT_TEAM_ROOT` or `--agent-team-root <dir>`.
- * Teams are defined in .pi/agents/teams.yaml. On startup the first team is
- * activated; use /agents-team to switch. Only team members are dispatchable.
+ * Teams are defined in .pi/agents/teams.yaml. On startup **none** is active:
+ * normal Pi (built-in tools only, no dispatcher prompt). Use /agents-team to
+ * pick a YAML team for dispatch-only mode. Only that team’s members are dispatchable.
  *
  * Commands:
- *   /agents-team          — switch active team
+ *   /agents-team          — switch team (includes **none**)
  *   /agents-list          — list loaded agents
  *   /agents-grid N        — set column count (default 2)
  *
@@ -41,6 +42,14 @@ import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const EXTENSION_FILE_DIR = dirname(fileURLToPath(import.meta.url));
+
+/** Reserved roster name: normal Pi session (no YAML team, no dispatch-only lock). */
+const NONE_TEAM = "none";
+
+const NORMAL_PI_TOOLS = ["read", "bash", "edit", "write", "grep", "find", "ls"];
+
+const NONE_TEAM_CHOICE_LABEL =
+  "none — Normal Pi (built-in tools, no dispatcher / no team)";
 
 function dirHasAgentMarkdown(dir: string): boolean {
   if (!existsSync(dir)) return false;
@@ -264,6 +273,14 @@ export default function (pi: ExtensionAPI) {
   let sessionDir = "";
   let contextWindow = 0;
 
+  function applyToolsForActiveMode() {
+    if (activeTeamName === NONE_TEAM) {
+      pi.setActiveTools([...NORMAL_PI_TOOLS]);
+    } else {
+      pi.setActiveTools(["dispatch_agent"]);
+    }
+  }
+
   /** Agent defs + teams.yaml from install root; sessions under sessionRoot. */
   function loadAgents(defRoot: string, sessionRoot: string) {
     sessionDir = join(sessionRoot, ".pi", "agent-sessions");
@@ -292,6 +309,14 @@ export default function (pi: ExtensionAPI) {
 
   function activateTeam(teamName: string) {
     activeTeamName = teamName;
+
+    if (teamName === NONE_TEAM) {
+      agentStates.clear();
+      gridCols = 2;
+      applyToolsForActiveMode();
+      return;
+    }
+
     const members = teams[teamName] || [];
     const defsByName = new Map(
       allAgentDefs.map((d) => [d.name.toLowerCase(), d]),
@@ -319,6 +344,7 @@ export default function (pi: ExtensionAPI) {
     // Auto-size grid columns based on team size
     const size = agentStates.size;
     gridCols = size <= 3 ? size : size === 4 ? 2 : 3;
+    applyToolsForActiveMode();
   }
 
   // ── Grid Rendering ───────────────────────────
@@ -400,9 +426,11 @@ export default function (pi: ExtensionAPI) {
       return {
         render(width: number): string[] {
           if (agentStates.size === 0) {
-            text.setText(
-              theme.fg("dim", "No agents found. Add .md files to agents/"),
-            );
+            const msg =
+              activeTeamName === NONE_TEAM
+                ? "Team: none — normal Pi (use /agents-team for dispatcher + grid)"
+                : "No agents found. Add .md files to agents/";
+            text.setText(theme.fg("dim", msg));
             return text.render(width);
           }
 
@@ -759,16 +787,30 @@ export default function (pi: ExtensionAPI) {
         return;
       }
 
-      const options = teamNames.map((name) => {
-        const members = teams[name].map((m) => displayName(m));
-        return `${name} — ${members.join(", ")}`;
-      });
+      const options = [
+        NONE_TEAM_CHOICE_LABEL,
+        ...teamNames.map((name) => {
+          const members = teams[name].map((m) => displayName(m));
+          return `${name} — ${members.join(", ")}`;
+        }),
+      ];
 
       const choice = await ctx.ui.select("Select Team", options);
       if (choice === undefined) return;
 
       const idx = options.indexOf(choice);
-      const name = teamNames[idx];
+      if (idx === 0) {
+        activateTeam(NONE_TEAM);
+        updateWidget();
+        ctx.ui.setStatus("agent-team", "Team: none");
+        ctx.ui.notify(
+          "Team: none — built-in tools only. Use /agents-team to enable dispatcher mode.",
+          "info",
+        );
+        return;
+      }
+
+      const name = teamNames[idx - 1];
       activateTeam(name);
       updateWidget();
       ctx.ui.setStatus("agent-team", `Team: ${name} (${agentStates.size})`);
@@ -791,7 +833,13 @@ export default function (pi: ExtensionAPI) {
           return `${displayName(s.def.name)} (${s.status}, ${session}, runs: ${s.runCount}): ${s.def.description}`;
         })
         .join("\n");
-      _ctx.ui.notify(names || "No agents loaded", "info");
+      _ctx.ui.notify(
+        names ||
+          (activeTeamName === NONE_TEAM
+            ? "Team is none — switch to a YAML team with /agents-team to list dispatchable agents."
+            : "No agents loaded"),
+        "info",
+      );
     },
   });
 
@@ -821,6 +869,10 @@ export default function (pi: ExtensionAPI) {
   // ── System Prompt Override ───────────────────
 
   pi.on("before_agent_start", async (_event, _ctx) => {
+    if (activeTeamName === NONE_TEAM) {
+      return undefined;
+    }
+
     // Build dynamic agent catalog from active team only
     const agentCatalog = Array.from(agentStates.values())
       .map(
@@ -890,28 +942,30 @@ ${agentCatalog}`,
 
     loadAgents(defRoot, sessionRoot);
 
-    // Default to first team — use /agents-team to switch
-    const teamNames = Object.keys(teams);
-    if (teamNames.length > 0) {
-      activateTeam(teamNames[0]);
-    }
-
-    // Lock down to dispatcher-only (tool already registered at top level)
-    pi.setActiveTools(["dispatch_agent"]);
+    // Default to none (normal Pi). Use /agents-team for YAML roster + dispatch-only mode.
+    activateTeam(NONE_TEAM);
 
     _ctx.ui.setStatus(
       "agent-team",
-      `Team: ${activeTeamName} (${agentStates.size})`,
+      activeTeamName === NONE_TEAM
+        ? "Team: none"
+        : `Team: ${activeTeamName} (${agentStates.size})`,
     );
     const members = Array.from(agentStates.values())
       .map((s) => displayName(s.def.name))
       .join(", ");
     _ctx.ui.notify(
-      `Team: ${activeTeamName} (${members})\n` +
-        `Team sets loaded from: .pi/agents/teams.yaml\n\n` +
-        `/agents-team          Select a team\n` +
-        `/agents-list          List active agents and status\n` +
-        `/agents-grid <1-6>    Set grid column count`,
+      activeTeamName === NONE_TEAM
+        ? `Team: none — normal Pi (built-in tools).\n` +
+            `Team YAML: .pi/agents/teams.yaml\n\n` +
+            `/agents-team          Pick a roster or stay on none\n` +
+            `/agents-list          List active agents (dispatcher mode)\n` +
+            `/agents-grid <1-6>    Grid columns when dispatching`
+        : `Team: ${activeTeamName} (${members})\n` +
+            `Team sets loaded from: .pi/agents/teams.yaml\n\n` +
+            `/agents-team          Select a team\n` +
+            `/agents-list          List active agents and status\n` +
+            `/agents-grid <1-6>    Set grid column count`,
       "info",
     );
     updateWidget();
