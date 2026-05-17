@@ -1,50 +1,47 @@
 # Repo map (monorepo — for agents)
 
-**Hub document.** Agents working inside one app should also read that app's `AGENTS.md` (e.g. `apps/web/AGENTS.md`) for local rules and commands.
+**Hub document.** Workspace-specific detail lives under **`docs/apps/`** and **`docs/packages/`** — not inside `apps/*` source trees.
 
 ## Purpose
 
 <!-- One paragraph: the product/system across all workspaces -->
 
-## Workspace layout
+## Workspaces
 
-| Path | Package / name | Role | Local agent brief |
-|------|----------------|------|-------------------|
-| `apps/web` | <!-- @acme/web --> | <!-- Frontend --> | [apps/web/AGENTS.md](../apps/web/AGENTS.md) |
-| `apps/api` | <!-- @acme/api --> | <!-- API --> | [apps/api/AGENTS.md](../apps/api/AGENTS.md) |
-| `packages/ui` | <!-- --> | <!-- Shared UI --> | <!-- link if AGENTS.md exists, else "—" --> |
+| Code path | Docs | Role |
+|-----------|------|------|
+| `apps/web` | [docs/apps/web/README.md](../apps/web/README.md) | <!-- Frontend --> |
+| `apps/api` | [docs/apps/api/README.md](../apps/api/README.md) | <!-- API --> |
+| `packages/ui` | [docs/packages/ui/README.md](../packages/ui/README.md) | <!-- Shared UI --> |
+| `packages/shared` | [docs/packages/shared/README.md](../packages/shared/README.md) | <!-- Shared types/utils --> |
+
+- App index: [docs/apps/README.md](../apps/README.md)
+- Package index: [docs/packages/README.md](../packages/README.md)
 
 ## How workspaces relate
 
 ```text
-<!-- optional ASCII: web → api → db, shared packages -->
+<!-- optional: web → api → db; packages consumed by apps -->
 ```
-
-## Shared vs app-only
-
-| Area | Shared packages | App-only |
-|------|-----------------|----------|
-| Types / utils | `packages/shared` | — |
-| UI primitives | `packages/ui` | `apps/web` features |
 
 ## Root entry points
 
 - **Orchestration:** <!-- turbo / nx / pnpm -w -->
-- **CI:** <!-- .github/workflows/ — what runs on PR -->
+- **CI:** <!-- .github/workflows/ -->
 
 ## Domain contexts
 
-<!-- single CONTEXT.md at root -->
-- Global domain: [CONTEXT.md](../CONTEXT.md)
+<!-- single -->
+- [CONTEXT.md](../../CONTEXT.md)
 
-<!-- OR multi-context -->
-- Context index: [CONTEXT-MAP.md](../CONTEXT-MAP.md)
+<!-- multi -->
+- [CONTEXT-MAP.md](../../CONTEXT-MAP.md)
 
 ## Where not to look first
 
-<!-- `dist/`, `node_modules/`, generated clients, etc. -->
+<!-- dist/, node_modules/, generated output -->
 
 ## Related docs
 
 - Commands: [commands.md](./commands.md)
-- ADRs: `docs/adr/` (system-wide) and per-app `docs/adr/` if present
+- ADRs: `docs/adr/`

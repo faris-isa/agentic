@@ -1,6 +1,6 @@
 ---
 name: bootstrap-agent-repo
-description: Onboard a large or existing codebase for AI agents by exploring the repo and writing or updating AGENTS.md, docs/agents/*.md, and an optional CONTEXT.md stub. Use when starting agent work on a new repo, missing agent docs, or user asks for AGENTS.md / agent onboarding / repo map for agents.
+description: Onboard a large or existing codebase for AI agents by exploring the repo and writing AGENTS.md, docs/agents/ (hub), docs/apps/<app>/README.md, docs/packages/<pkg>/README.md, and optional CONTEXT.md. Use when starting agent work on a new repo, missing agent docs, or user asks for AGENTS.md / agent onboarding / repo map for agents.
 disable-model-invocation: true
 ---
 
@@ -12,7 +12,7 @@ Scaffold what agents need to work in **this** codebase without dumping everythin
 
 | Skill | When |
 |-------|------|
-| **This skill** | Repo map, commands, stack, `AGENTS.md` index, optional `CONTEXT.md` stub |
+| **This skill** | Repo map, commands, stack, `AGENTS.md` index, workspace READMEs under `docs/apps` and `docs/packages` |
 | **`setup-matt-pocock-skills`** (Matt) | Issue tracker, triage labels, domain-doc *layout* for engineering skills |
 | **`zoom-out`** | Per-area map during a session (after bootstrap) |
 | **`grill-with-docs`** | Stress-test a *plan* against `CONTEXT.md` / ADRs |
@@ -22,27 +22,53 @@ Run **this** first on a large unknown repo. Run **`setup-matt-pocock-skills`** w
 ## Principles
 
 1. **`AGENTS.md` is an index** — roster, links, non-negotiables (~80–150 lines max). Not a dump of every module.
-2. **`docs/agents/` is the detail** — repo map, commands, tracker/labels (via Matt setup), domain rules.
-3. **Explore before writing** — read `package.json`, `go.mod`, `Makefile`, CI, existing docs; do not invent paths.
-4. **One decision at a time** — present findings, then ask; do not dump a questionnaire.
-5. **Edit the file that already exists** — `CLAUDE.md` if present, else `AGENTS.md`; never create both.
+2. **`docs/agents/` is the hub** — whole-repo map, commands, issue tracker, triage labels, domain consumer rules (Matt setup). **Not** per-app narrative.
+3. **`docs/apps/<slug>/README.md`** — app/workspace docs (humans + agents). Mirrors `apps/<slug>/` in the repo.
+4. **`docs/packages/<slug>/README.md`** — shared package docs. Mirrors `packages/<slug>/`.
+5. **No `AGENTS.md` inside `apps/*` or `packages/*`** by default — keeps source trees clean.
+6. **Explore before writing** — read manifests, CI, existing docs; do not invent paths.
+7. **One decision at a time** — present findings, then ask; do not dump a questionnaire.
+8. **Edit the file that already exists** — `CLAUDE.md` if present, else `AGENTS.md`; never create both.
 
-## Monorepo: hub at root, briefs under `apps/`
+## Monorepo layout (recommended)
 
-Use a **two-layer** layout when you have `apps/*` (or similar deployable workspaces):
+```text
+AGENTS.md                         ← index (“start here”)
+docs/agents/
+  repo-map.md                     ← whole monorepo; links to docs/apps & docs/packages
+  commands.md                     ← root + workspace filters
+  issue-tracker.md                ← after setup-matt-pocock-skills
+  triage-labels.md
+  domain.md
+docs/apps/
+  README.md                       ← index of apps ([template](templates/docs-apps-index.md))
+  web/README.md                   ← app brief ([template](templates/app-README.md))
+  api/README.md
+docs/packages/
+  README.md                       ← index of packages ([template](templates/docs-packages-index.md))
+  ui/README.md                    ← package notes ([template](templates/package-README.md))
+  shared/README.md
+```
 
-| Layer | Location | Contents |
-|-------|----------|----------|
-| **Hub** | Root `AGENTS.md` + `docs/agents/repo-map.md` | Whole-repo map, workspace table, how apps connect, root/turbo/pnpm commands |
-| **Spoke** | `apps/<name>/AGENTS.md` | That app only: local tree, `--filter` commands, app rules, internal package deps |
+**Read order:** root `AGENTS.md` → `docs/agents/repo-map.md` → `docs/agents/commands.md` → **`docs/apps/<slug>/README.md`** or **`docs/packages/<slug>/README.md`** for the workspace being edited.
 
-**Read order for an agent:** root map → root commands → **then** the `AGENTS.md` in the app you're editing.
+**Slug convention:** folder name under `apps/` or `packages/` (`apps/web` → `docs/apps/web/README.md`).
 
-- Prefer **`AGENTS.md`** (matches Cursor, Open Code, and this repo). Some teams use `agent.md`; if the project already standardises on that name, follow the repo — but do not duplicate the full repo map in every app file.
-- Optional per-app **`CONTEXT.md`** when domain language differs per app; link from the app's `AGENTS.md`. System-wide terms stay in root `CONTEXT.md` or `CONTEXT-MAP.md`.
-- **`packages/*`** usually do **not** need their own `AGENTS.md` unless they're large frameworks; mention them in the root map and in the consuming app's spoke file.
+**“For AI agents” section:** include at the top or bottom of each workspace README ([app-README.md](templates/app-README.md), [package-README.md](templates/package-README.md)) — commands, rules, internal deps. Rest of the file can be normal product documentation.
 
-Templates: [repo-map-monorepo.md](templates/repo-map-monorepo.md), [AGENTS-app.md](templates/AGENTS-app.md).
+**Domain language:** root `CONTEXT.md` / `CONTEXT-MAP.md`; link from workspace READMEs. Optional `docs/apps/<slug>/CONTEXT.md` only if the team already uses that pattern.
+
+**Migration:**
+
+| From | To |
+|------|-----|
+| `apps/*/AGENTS.md` | `docs/apps/<slug>/README.md` (merge “For AI agents” + delete or [pointer](templates/AGENTS-pointer.md)) |
+| `docs/agents/apps/<slug>.md` | `docs/apps/<slug>/README.md` |
+| Stray package notes in repo-map only | `docs/packages/<slug>/README.md` when package is non-trivial |
+
+**Optional in-app pointer:** `apps/<name>/AGENTS.md` linking to `docs/apps/<name>/README.md` — only if user asks.
+
+Templates: [repo-map-monorepo.md](templates/repo-map-monorepo.md), [app-README.md](templates/app-README.md), [package-README.md](templates/package-README.md).
 
 ## Process
 
@@ -51,76 +77,55 @@ Templates: [repo-map-monorepo.md](templates/repo-map-monorepo.md), [AGENTS-app.m
 Read what exists; note gaps:
 
 - Root: `AGENTS.md`, `CLAUDE.md`, `README.md`, `CONTEXT.md`, `CONTEXT-MAP.md`, `docs/adr/`
-- `docs/agents/` — prior bootstrap?
-- Stack signals: `package.json`, `pnpm-workspace.yaml`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `docker-compose.yml`
-- **Commands**: `scripts` in package.json, `Makefile`, CI workflows (`.github/workflows/`)
-- **Entry points**: `src/`, `apps/`, `cmd/`, main server, API routes
-- **Tests**: how to run unit/e2e (`test`, `vitest`, `pytest`, etc.)
-- **Agent packs**: symlinks to external `agents/` or `.opencode/` (e.g. [isa agentic](https://github.com/faris-isa/agentic))
+- `docs/agents/`, `docs/apps/`, `docs/packages/` — prior bootstrap?
+- Legacy: `docs/agents/apps/*.md`, `apps/*/AGENTS.md`
+- Stack: `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `nx.json`, `go.work`, etc.
+- **Commands** and **CI**
+- **Workspaces** under `apps/*`, `packages/*`
+- **Agent packs** (e.g. symlinked [agentic](https://github.com/faris-isa/agentic))
 
 ### 2. Present findings
 
-Summarise: stack, how to run dev/test/lint, what agent docs exist, what's missing.
+Summarise stack, commands, existing docs, gaps.
 
 ### 3. Walk decisions (one section at a time)
 
-**A — Agent index file**
-
-> Which file should hold the short "start here" block for agents?
-
-- Edit existing **`CLAUDE.md`** if it exists, else **`AGENTS.md`**
-- If neither exists, ask whether to create **`AGENTS.md`** (default) or **`CLAUDE.md`**
+**A — Agent index file** — `CLAUDE.md` if present, else `AGENTS.md`; create only if missing.
 
 **B — Repo shape**
 
-- **Monorepo** — use [repo-map-monorepo.md](templates/repo-map-monorepo.md) at `docs/agents/repo-map.md`; ask which `apps/*` (or deployables) get a spoke **`AGENTS.md`** from [AGENTS-app.md](templates/AGENTS-app.md)
-- **Single app** — use [repo-map.md](templates/repo-map.md); one root `AGENTS.md` is enough (no per-app spokes unless user asks)
+- **Monorepo** — [repo-map-monorepo.md](templates/repo-map-monorepo.md); which `apps/*` get `docs/apps/<slug>/README.md`; which `packages/*` get `docs/packages/<slug>/README.md` (shared libs that agents touch often, not every tiny util)
+- **Single app** — [repo-map.md](templates/repo-map.md); optional single `docs/apps/<name>/README.md` if code still lives under `apps/` or document primary tree in repo-map only
 
-**C — Domain context**
+**C — Domain context** — link or stub `CONTEXT.md` / `CONTEXT-MAP.md`; Matt `domain.md` when using engineering skills
 
-- **`CONTEXT.md` already exists** — link only; do not overwrite
-- **Missing** — offer a minimal stub from [templates/CONTEXT-stub.md](templates/CONTEXT-stub.md)
-- **Multi-context** — `CONTEXT-MAP.md` at root; document in `docs/agents/domain.md` (or run Matt's setup for domain layout)
+**D — Issue workflow** — `setup-matt-pocock-skills` if using GitHub/GitLab issues
 
-**D — Issue workflow**
+**E — External agent pack** (optional)
 
-- Will agents use GitHub/GitLab issues on this repo?
-  - **Yes** → tell user to run **`setup-matt-pocock-skills`** next (or run it in the same session after this skill finishes)
-  - **No / not yet** — skip `docs/agents/issue-tracker.md` unless they want local `.scratch/` issues
-
-**E — External agent pack (optional)**
-
-- Symlink `agents/` and `skills/` from [agentic](https://github.com/faris-isa/agentic) or another pack?
-- Record paths in the `AGENTS.md` block (Open Code: `~/.config/opencode/`; Cursor: `.cursor/`; Pi: `~/.pi/agent/`)
+**F — In-app pointers** (optional) — default **no**
 
 ### 4. Draft for approval
 
-Show drafts of:
-
-- `## For AI agents` block (from [templates/AGENTS-block.md](templates/AGENTS-block.md))
-- `docs/agents/repo-map.md` (monorepo → [repo-map-monorepo.md](templates/repo-map-monorepo.md); else [repo-map.md](templates/repo-map.md))
-- `docs/agents/commands.md` — root + per-workspace filters (from exploration)
-- Optional `CONTEXT.md` stub at root and/or under apps
-- Per chosen app: `apps/<name>/AGENTS.md` from [AGENTS-app.md](templates/AGENTS-app.md)
-
-User edits before write.
+- `## For AI agents` block ([AGENTS-block.md](templates/AGENTS-block.md))
+- `docs/agents/repo-map.md`, `commands.md`
+- `docs/apps/README.md` + per-app READMEs
+- `docs/packages/README.md` + per-package READMEs (if any)
+- Optional root `CONTEXT.md` stub
 
 ### 5. Write
 
-- Merge **`## For AI agents`** into the chosen index file (update in place if section exists).
-- Create **`docs/agents/`** and write `repo-map.md`, `commands.md`.
-- For monorepos: write **`apps/<name>/AGENTS.md`** only for workspaces the user selected (not every `packages/*` by default).
-- Write **`CONTEXT.md`** only if user agreed and file is absent.
-- Do **not** duplicate Matt's `issue-tracker.md` / `triage-labels.md` unless user skipped Matt setup and asked for placeholders.
+- Merge **`## For AI agents`** into root index file.
+- Write **`docs/agents/repo-map.md`** and **`commands.md`**.
+- Create **`docs/apps/<slug>/README.md`** and **`docs/packages/<slug>/README.md`** as agreed.
+- Write index READMEs at `docs/apps/README.md` and `docs/packages/README.md`.
+- Migrate legacy paths; remove duplicates.
+- Do not duplicate Matt's tracker files unless requested.
 
 ### 6. Done
 
-Tell the user:
-
-- What was written and where agents should start reading
-- Suggested next skills: **`setup-matt-pocock-skills`** (issues), **`zoom-out`** (unfamiliar area), **`grill-with-docs`** (before a large feature)
-- They can edit `docs/agents/*` directly; re-run this skill when stack or entry points change materially
+Summarise paths, read order, next skills (`setup-matt-pocock-skills`, `zoom-out`, `grill-with-docs`).
 
 ---
 
-*Inspired by [mattpocock/skills setup-matt-pocock-skills](https://github.com/mattpocock/skills/tree/main/skills/engineering/setup-matt-pocock-skills); extended for repo map and AGENTS index.*
+*Inspired by [mattpocock/skills setup-matt-pocock-skills](https://github.com/mattpocock/skills/tree/main/skills/engineering/setup-matt-pocock-skills).*

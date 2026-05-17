@@ -2,13 +2,18 @@
 
 **Start here (root):** read `docs/agents/repo-map.md` and `docs/agents/commands.md` before editing code.
 
-**Working in one app?** Also read that app's `AGENTS.md` (e.g. `apps/web/AGENTS.md`) after the root map — local layout, filters, and app rules live there.
+**Working in one workspace?** Read its README after the hub:
+
+- App: `docs/apps/<slug>/README.md` (e.g. `docs/apps/web/README.md` for `apps/web`)
+- Shared package: `docs/packages/<slug>/README.md` (e.g. `docs/packages/ui/README.md`)
+
+Indexes: `docs/apps/README.md`, `docs/packages/README.md`.
 
 ### Repo
 
 - **Shape:** <!-- single app | monorepo -->
-- **Stack:** <!-- e.g. Bun + Elysia API, React + Vite web -->
-- **Workspaces:** <!-- e.g. `apps/*`, `packages/*` — or primary tree for single app -->
+- **Stack:** <!-- -->
+- **Workspaces:** <!-- `apps/*`, `packages/*` -->
 - **Run dev:** see `docs/agents/commands.md`
 
 ### Rules
@@ -22,16 +27,16 @@
 <!-- single-context -->
 See `CONTEXT.md` and `docs/adr/` for terminology and architectural decisions.
 
-<!-- multi-context: replace above with -->
-See `CONTEXT-MAP.md` for bounded contexts; each context has its own `CONTEXT.md` and may have `docs/adr/`.
+<!-- multi-context -->
+See `CONTEXT-MAP.md` for bounded contexts; each context may have its own `CONTEXT.md` and `docs/adr/`.
 
 ### Agent skills (engineering workflow)
 
-<!-- If setup-matt-pocock-skills was run, keep this subsection; else omit or add after setup -->
+<!-- If setup-matt-pocock-skills was run -->
 Issue tracker, triage labels, and domain layout: see `docs/agents/issue-tracker.md`, `triage-labels.md`, `domain.md`.
 
 ### Optional agent pack
 
 <!-- If symlinked from isa/agentic or similar -->
-- Agent prompts: <!-- path, e.g. ~/.config/opencode/agents → agentic/agents -->
+- Agent prompts: <!-- path -->
 - Skills: <!-- path -->
