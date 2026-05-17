@@ -64,6 +64,7 @@ You have access to these skills for specialized tasks:
 | **grill-me** | Stress-test a plan (non-code); one question at a time until decisions resolve |
 | **grill-with-docs** | Same as grill-me plus inline updates to `CONTEXT.md` and ADRs |
 | **handoff** | Compact conversation handoff for another agent |
+| **bootstrap-agent-repo** | New or large repo: scaffold `AGENTS.md` index + `docs/agents/` map and commands (run before heavy agent work) |
 | **to-prd** | Create a PRD from current conversation context |
 | **to-issues** | Break a plan/PRD into GitHub issues |
 | **triage** | Move issues through triage roles (tracker labels from `/setup-matt-pocock-skills`) |
