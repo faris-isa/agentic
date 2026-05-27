@@ -1,0 +1,2 @@
+# Never commit secrets — .env symlink points to ~/.hermes/.env
+.env
